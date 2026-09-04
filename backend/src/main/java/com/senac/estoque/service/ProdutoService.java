@@ -35,6 +35,8 @@ public class ProdutoService {
         produto.setNome(dados.getNome());
         produto.setDescricao(dados.getDescricao());
         produto.setPrecoUnitario(dados.getPrecoUnitario());
+        // Atualiza a quantidade em estoque quando fornecida
+        produto.setQuantidadeEstoque(dados.getQuantidadeEstoque());
         produto.setEstoqueMinimo(dados.getEstoqueMinimo());
         produto.setCategoriaId(dados.getCategoriaId());
         return produtoRepository.save(produto);
