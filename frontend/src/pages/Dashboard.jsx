@@ -3,17 +3,14 @@ import { get } from '../services/api'
 
 export default function Dashboard() {
   const [produtos, setProdutos] = useState([])
-  const [valorTotal, setValorTotal] = useState(0)
 
   useEffect(() => {
     get('/produtos').then(setProdutos)
-    get('/produtos/valor-total').then((r) => setValorTotal(r.valorTotal))
   }, [])
 
-  // BUG: usa um limite fixo de 10 unidades pra destacar "estoque baixo" no
-  // dashboard, ignorando o campo estoqueMinimo de cada produto (que pode ser
-  // diferente para cada um).
-  const estoqueBaixo = produtos.filter((p) => p.quantidadeEstoque < 10)
+  // Use os dados atuais dos produtos para calcular os indicadores
+  const valorTotal = produtos.reduce((sum, p) => sum + ((Number(p.precoUnitario) || 0) * (Number(p.quantidadeEstoque) || 0)), 0)
+  const estoqueBaixo = produtos.filter((p) => (Number(p.quantidadeEstoque) || 0) <= (Number(p.estoqueMinimo) || 0))
 
   return (
     <div>
@@ -35,7 +32,7 @@ export default function Dashboard() {
           <div className="card-head">
             <div>
               <div className="card-title">Valor total em estoque</div>
-              <div className="stat">R$ {valorTotal}</div>
+              <div className="stat">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             </div>
             <div className="card-icon" aria-hidden>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14v8H5z" fill="currentColor" opacity="0.12"/><path d="M7 10h10v2H7z" fill="currentColor"/></svg>

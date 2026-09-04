@@ -71,6 +71,26 @@ label { display:block; margin-bottom:8px; font-weight:700; color:var(--muted); f
 
 .low-stock { background: linear-gradient(90deg, rgba(224,122,120,0.08), rgba(224,122,120,0.02)); border-left: 4px solid rgba(224,122,120,0.16); }
 
+/* Movimentacoes specific */
+.movements-card { padding: 8px; }
+.movement-table thead th { background: linear-gradient(180deg, rgba(143,191,163,0.04), rgba(143,191,163,0.02)); color: var(--muted); font-weight:800; letter-spacing:0.2px; }
+.movement-table tbody td { padding: 18px; vertical-align: middle; }
+.movement-row:hover { background: rgba(143,191,163,0.04); transform: translateY(0); }
+.movement-product { font-weight:700; color:var(--text); }
+.movement-type .type-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; font-weight:700; font-size:13px; }
+.type-badge svg { display:block; }
+.type-badge.entrada { background: rgba(139,191,154,0.12); color: #2d7a45; }
+.type-badge.saida { background: rgba(217,102,102,0.08); color: #9b2b2b; }
+.movement-qty .qty-pill { background: linear-gradient(90deg, rgba(143,191,163,0.16), rgba(120,168,143,0.08)); padding:8px 12px; border-radius:12px; font-weight:800; color:var(--text); display:inline-block; }
+.movement-date { color:var(--muted); font-size:13px; white-space:nowrap; }
+.movement-obs .obs-text { display:inline-block; max-width:320px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--muted); }
+
+/* Responsive tweaks for movements table */
+@media (max-width: 720px) {
+	.movement-table { min-width:720px; }
+	.movement-obs .obs-text { max-width:140px; }
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
   .nav-items { display:none; }

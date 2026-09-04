@@ -18,12 +18,16 @@ export default function Movimentacoes() {
 
   function handleSubmit(e) {
     e.preventDefault()
-    // BUG: nao desabilita o botao durante o envio nem impede duplo-clique,
-    // entao cliques rapidos podem registrar a mesma movimentacao 2x
+    // Evita duplo envio rápido
+    if (enviando) return
+    setEnviando(true)
     post('/movimentacoes', form).then(() => {
       carregar()
       get('/produtos').then(setProdutos)
-    })
+    }).catch((err) => {
+      console.error('Erro ao registrar movimentacao', err)
+      alert('Não foi possível registrar a movimentação.')
+    }).finally(() => setEnviando(false))
   }
 
   return (
@@ -66,22 +70,40 @@ export default function Movimentacoes() {
         </div>
       </form>
 
-      <div className="table-wrap" style={{ marginTop: 16 }}>
-        <table>
-          <thead><tr><th>Produto</th><th>Tipo</th><th>Quantidade</th><th>Data</th><th>Observacao</th></tr></thead>
+      <div className="table-wrap movements-card" style={{ marginTop: 16 }}>
+        <table className="movement-table">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Tipo</th>
+              <th>Quantidade</th>
+              <th>Data</th>
+              <th>Observação</th>
+            </tr>
+          </thead>
           <tbody>
-            {/* BUG: nao trata o caso da lista vir vazia/null do backend antes de
-                carregar; se a API retornar null (em vez de []) isso quebra. */}
-            {movimentacoes.map((m) => (
-              <tr key={m.id}>
-                <td>{m.produtoId}</td>
-                <td>{m.tipo}</td>
-                <td>{m.quantidade}</td>
-                {/* BUG: exibe a data crua do JS sem formatar em pt-BR */}
-                <td>{new Date(m.data).toString()}</td>
-                <td>{m.observacao}</td>
-              </tr>
-            ))}
+            {Array.isArray(movimentacoes) && movimentacoes.map((m) => {
+              const produto = produtos.find((p) => p.id === m.produtoId)
+              const produtoNome = produto ? produto.nome : m.produtoId
+              const date = m.data ? new Date(m.data) : null
+              const pad = (n) => String(n).padStart(2, '0')
+              const formattedDate = date ? `${pad(date.getDate())}/${pad(date.getMonth()+1)}/${date.getFullYear()} às ${pad(date.getHours())}:${pad(date.getMinutes())}` : '-'
+              return (
+                <tr key={m.id} className="movement-row">
+                  <td className="movement-product">{produtoNome}</td>
+                  <td className="movement-type">
+                    {m.tipo === 'ENTRADA' ? (
+                      <span className="type-badge entrada"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> Entrada</span>
+                    ) : (
+                      <span className="type-badge saida"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M19 12H5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> Saída</span>
+                    )}
+                  </td>
+                  <td className="movement-qty"><span className="qty-pill">{m.quantidade}</span></td>
+                  <td className="movement-date">{formattedDate}</td>
+                  <td className="movement-obs">{m.observacao ? <span className="obs-text">{m.observacao}</span> : <span className="muted">-</span>}</td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

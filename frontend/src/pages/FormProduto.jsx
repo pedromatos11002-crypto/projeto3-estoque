@@ -9,6 +9,7 @@ export default function FormProduto() {
   const [form, setForm] = useState({
     nome: '', descricao: '', precoUnitario: '', quantidadeEstoque: 0, estoqueMinimo: 0, categoriaId: '',
   })
+  const [enviando, setEnviando] = useState(false)
 
   useEffect(() => {
     get('/categorias').then(setCategorias)
@@ -18,23 +19,60 @@ export default function FormProduto() {
   }, [id])
 
   function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+    setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    // BUG: nao valida preco negativo antes de enviar pro backend
-    if (id) {
-      put(`/produtos/${id}`, form).then(() => navigate('/produtos'))
-    } else {
-      post('/produtos', form).then(() => navigate('/produtos'))
+
+    console.log('handleSubmit executado')
+    console.log('ID:', id)
+
+    // prepare payload: convert numbers and normalize decimal comma
+    const payload = {
+      ...form,
+      precoUnitario: form.precoUnitario === '' ? 0 : parseFloat(String(form.precoUnitario).replace(',', '.')),
+      estoqueMinimo: parseInt(form.estoqueMinimo || 0, 10) || 0,
+      quantidadeEstoque: parseInt(form.quantidadeEstoque === '' ? NaN : form.quantidadeEstoque, 10),
+      categoriaId: form.categoriaId === '' ? null : (isNaN(Number(form.categoriaId)) ? form.categoriaId : Number(form.categoriaId)),
+    }
+
+    console.log('Payload:', payload)
+
+    if (payload.precoUnitario < 0) {
+      alert('O preço não pode ser negativo.')
+      return
+    }
+
+    if (!Number.isInteger(payload.quantidadeEstoque) || payload.quantidadeEstoque < 0 || isNaN(payload.quantidadeEstoque)) {
+      alert('A quantidade em estoque deve ser um número inteiro não-negativo.')
+      setEnviando(false)
+      return
+    }
+
+    setEnviando(true)
+    try {
+      if (id) {
+        console.log('Enviando PUT para /produtos/' + id)
+        await put(`/produtos/${id}`, payload)
+      } else {
+        console.log('Enviando POST para /produtos')
+        await post('/produtos', payload)
+      }
+      navigate('/produtos')
+    } catch (err) {
+      console.error('Erro ao salvar/criar produto', err)
+      alert('Não foi possível salvar o produto: ' + (err.message || err))
+    } finally {
+      setEnviando(false)
     }
   }
 
   return (
     <div>
       <h1>{id ? 'Editar Produto' : 'Novo Produto'}</h1>
-      <form className="card form-card" onSubmit={handleSubmit}>
+      <form className="card form-card" onSubmit={handleSubmit} noValidate>
         <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', gap: 18 }}>
           <div>
             <div className="field">
@@ -53,18 +91,19 @@ export default function FormProduto() {
               <input type="number" step="0.01" name="precoUnitario" value={form.precoUnitario} onChange={handleChange} />
             </div>
             <div className="field">
+              <label>Quantidade em estoque</label>
+              <input type="number" step="1" min="0" name="quantidadeEstoque" value={form.quantidadeEstoque} onChange={handleChange} required />
+            </div>
+            <div className="field">
               <label>Estoque minimo</label>
-              <input type="number" name="estoqueMinimo" value={form.estoqueMinimo} onChange={handleChange} />
+              <input type="number" min="0" name="estoqueMinimo" value={form.estoqueMinimo} onChange={handleChange} />
             </div>
             <div className="field">
               <label>Categoria</label>
-              {/* BUG: o value do option usa o NOME da categoria em vez do ID,
-                  entao categoriaId acaba sendo salvo com um texto (o nome),
-                  e nao com o id numerico que o backend espera. */}
               <select name="categoriaId" value={form.categoriaId} onChange={handleChange}>
                 <option value="">Selecione...</option>
                 {categorias.map((c) => (
-                  <option key={c.id} value={c.nome}>{c.nome}</option>
+                  <option key={c.id} value={c.id}>{c.nome}</option>
                 ))}
               </select>
             </div>
@@ -72,7 +111,7 @@ export default function FormProduto() {
         </div>
 
         <div style={{ textAlign: 'right', marginTop: 8 }}>
-          <button type="submit" className="btn btn-primary">Salvar</button>
+          <button type="submit" className="btn btn-primary" disabled={enviando}>{enviando ? 'Salvando...' : 'Salvar'}</button>
         </div>
       </form>
     </div>
