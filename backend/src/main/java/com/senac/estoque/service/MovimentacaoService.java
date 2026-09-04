@@ -6,6 +6,7 @@ import com.senac.estoque.model.TipoMovimentacao;
 import com.senac.estoque.repository.MovimentacaoRepository;
 import com.senac.estoque.repository.ProdutoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,20 +26,29 @@ public class MovimentacaoService {
         return movimentacaoRepository.findAll();
     }
 
+    @Transactional
     public Movimentacao registrar(Movimentacao mov) {
-        mov.setData(LocalDateTime.now());
+        if (mov.getQuantidade() == null || mov.getQuantidade() <= 0) {
+            throw new IllegalArgumentException("A quantidade deve ser maior que zero.");
+        }
+
         Produto produto = produtoRepository.findById(mov.getProdutoId()).orElseThrow();
 
         if (mov.getTipo() == TipoMovimentacao.SAIDA) {
-            // BUG: nao verifica se ha quantidade suficiente em estoque antes de
-            // dar saida, entao o estoque pode ficar negativo.
+            // Verifica estoque suficiente antes de dar saída
+            if (produto.getQuantidadeEstoque() == null || produto.getQuantidadeEstoque() < mov.getQuantidade()) {
+                throw new IllegalArgumentException("Estoque insuficiente. Estoque disponível: " + (produto.getQuantidadeEstoque() == null ? 0 : produto.getQuantidadeEstoque()));
+            }
             produto.setQuantidadeEstoque(produto.getQuantidadeEstoque() - mov.getQuantidade());
-            produtoRepository.save(produto);
+        } else if (mov.getTipo() == TipoMovimentacao.ENTRADA) {
+            // Soma a quantidade de entrada
+            Integer atual = produto.getQuantidadeEstoque() == null ? 0 : produto.getQuantidadeEstoque();
+            produto.setQuantidadeEstoque(atual + mov.getQuantidade());
         }
-        // BUG: falta o "else" para TipoMovimentacao.ENTRADA. Registrar uma entrada
-        // salva a movimentacao no historico, mas NUNCA soma a quantidade de volta
-        // no estoque do produto.
 
+        produtoRepository.save(produto);
+
+        mov.setData(LocalDateTime.now());
         return movimentacaoRepository.save(mov);
     }
 }
