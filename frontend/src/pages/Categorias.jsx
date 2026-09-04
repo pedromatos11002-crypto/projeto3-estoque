@@ -58,25 +58,34 @@ export default function Categorias() {
 
   return (
     <div>
-      <h1>Categorias</h1>
-      <form className="card" onSubmit={criar}>
+      <div className="space-between mb-12">
+        <h1>Categorias</h1>
+      </div>
+
+      <form className="card form-card" onSubmit={criar}>
         <div className="field">
           <label>Nome da categoria</label>
           <input value={nome} onChange={(e) => setNome(e.target.value)} />
         </div>
-        <button type="submit">Adicionar</button>
+        <div className="space-between">
+          <div />
+          <button type="submit" className="btn btn-primary">Adicionar</button>
+        </div>
       </form>
-      <table>
-        <thead><tr><th>Nome</th><th>Acoes</th></tr></thead>
-        <tbody>
-          {categorias.map((c) => (
-            <tr key={c.id}>
-              <td>{c.nome}</td>
-              <td><button className="danger" onClick={() => excluir(c.id)}>Excluir</button></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+      <div className="table-wrap" style={{ marginTop: 16 }}>
+        <table>
+          <thead><tr><th>Nome</th><th>Acoes</th></tr></thead>
+          <tbody>
+            {categorias.map((c) => (
+              <tr key={c.id}>
+                <td>{c.nome}</td>
+                <td><button className="btn btn-danger" onClick={() => excluir(c.id)}>Excluir</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
