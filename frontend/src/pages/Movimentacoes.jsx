@@ -6,6 +6,7 @@ export default function Movimentacoes() {
   const [produtos, setProdutos] = useState([])
   const [categorias, setCategorias] = useState([])
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('')
+  const [tipoSelecionado, setTipoSelecionado] = useState('')
   const [form, setForm] = useState({ produtoId: '', tipo: 'SAIDA', quantidade: 1, observacao: '' })
   const [enviando, setEnviando] = useState(false)
 
@@ -33,12 +34,17 @@ export default function Movimentacoes() {
     }).finally(() => setEnviando(false))
   }
 
-  const movimentacoesFiltradas = categoriaSelecionada
-    ? movimentacoes.filter((m) => {
+  const movimentacoesFiltradas = movimentacoes.filter((m) => {
+    const correspondeAoTipo = !tipoSelecionado || m.tipo === tipoSelecionado
+    if (!correspondeAoTipo) return false
+
+    if (categoriaSelecionada) {
       const produto = produtos.find((p) => p.id === m.produtoId)
       return produto && String(produto.categoriaId) === categoriaSelecionada
-    })
-    : movimentacoes
+    }
+
+    return true
+  })
 
   return (
     <div>
@@ -80,14 +86,24 @@ export default function Movimentacoes() {
         </div>
       </form>
 
-      <div className="field" style={{ maxWidth: 360, marginTop: 16 }}>
-        <label>Categoria</label>
-        <select value={categoriaSelecionada} onChange={(e) => setCategoriaSelecionada(e.target.value)}>
-          <option value="">Todas as categorias</option>
-          {categorias.map((categoria) => (
-            <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
-          ))}
-        </select>
+      <div className="grid" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 16 }}>
+        <div className="field">
+          <label>Categoria</label>
+          <select value={categoriaSelecionada} onChange={(e) => setCategoriaSelecionada(e.target.value)}>
+            <option value="">Todas as categorias</option>
+            {categorias.map((categoria) => (
+              <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label>Tipo</label>
+          <select value={tipoSelecionado} onChange={(e) => setTipoSelecionado(e.target.value)}>
+            <option value="">Todas</option>
+            <option value="ENTRADA">Entrada</option>
+            <option value="SAIDA">Saída</option>
+          </select>
+        </div>
       </div>
 
       <div className="table-wrap movements-card" style={{ marginTop: 16 }}>
