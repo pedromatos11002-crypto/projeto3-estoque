@@ -4,12 +4,15 @@ import { get, post } from '../services/api'
 export default function Movimentacoes() {
   const [movimentacoes, setMovimentacoes] = useState([])
   const [produtos, setProdutos] = useState([])
+  const [categorias, setCategorias] = useState([])
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState('')
   const [form, setForm] = useState({ produtoId: '', tipo: 'SAIDA', quantidade: 1, observacao: '' })
   const [enviando, setEnviando] = useState(false)
 
   useEffect(() => {
     carregar()
     get('/produtos').then(setProdutos)
+    get('/categorias').then(setCategorias)
   }, [])
 
   function carregar() {
@@ -29,6 +32,13 @@ export default function Movimentacoes() {
       alert('Não foi possível registrar a movimentação.')
     }).finally(() => setEnviando(false))
   }
+
+  const movimentacoesFiltradas = categoriaSelecionada
+    ? movimentacoes.filter((m) => {
+      const produto = produtos.find((p) => p.id === m.produtoId)
+      return produto && String(produto.categoriaId) === categoriaSelecionada
+    })
+    : movimentacoes
 
   return (
     <div>
@@ -70,6 +80,16 @@ export default function Movimentacoes() {
         </div>
       </form>
 
+      <div className="field" style={{ maxWidth: 360, marginTop: 16 }}>
+        <label>Categoria</label>
+        <select value={categoriaSelecionada} onChange={(e) => setCategoriaSelecionada(e.target.value)}>
+          <option value="">Todas as categorias</option>
+          {categorias.map((categoria) => (
+            <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="table-wrap movements-card" style={{ marginTop: 16 }}>
         <table className="movement-table">
           <thead>
@@ -82,7 +102,7 @@ export default function Movimentacoes() {
             </tr>
           </thead>
           <tbody>
-            {Array.isArray(movimentacoes) && movimentacoes.map((m) => {
+            {Array.isArray(movimentacoesFiltradas) && movimentacoesFiltradas.map((m) => {
               const produto = produtos.find((p) => p.id === m.produtoId)
               const produtoNome = produto ? produto.nome : m.produtoId
               const date = m.data ? new Date(m.data) : null
