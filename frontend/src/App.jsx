@@ -1,6 +1,7 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import Dashboard from './pages/Dashboard.jsx'
+import Graficos from './pages/Graficos.jsx'
 import Produtos from './pages/Produtos.jsx'
 import FormProduto from './pages/FormProduto.jsx'
 import Categorias from './pages/Categorias.jsx'
@@ -26,6 +27,7 @@ function App() {
 
           <div className={`nav-items ${menuOpen ? 'show' : ''}`}>
             <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Dashboard</Link>
+            <Link to="/graficos" className={`nav-link ${location.pathname.startsWith('/graficos') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Gráficos</Link>
             <Link to="/produtos" className={`nav-link ${location.pathname.startsWith('/produtos') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Produtos</Link>
             <Link to="/categorias" className={`nav-link ${location.pathname.startsWith('/categorias') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Categorias</Link>
             <Link to="/movimentacoes" className={`nav-link ${location.pathname.startsWith('/movimentacoes') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Movimentacoes</Link>
@@ -38,6 +40,7 @@ function App() {
       <div className="container">
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/graficos" element={<Graficos />} />
           <Route path="/produtos" element={<Produtos />} />
           <Route path="/produtos/novo" element={<FormProduto />} />
           <Route path="/produtos/:id/editar" element={<FormProduto />} />
