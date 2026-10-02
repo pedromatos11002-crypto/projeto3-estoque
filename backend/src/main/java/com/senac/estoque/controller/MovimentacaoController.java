@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/movimentacoes")
@@ -26,6 +27,7 @@ public class MovimentacaoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN','FUNCIONARIO')")
     public ResponseEntity<?> registrar(@RequestBody Movimentacao movimentacao) {
         try {
             Movimentacao m = movimentacaoService.registrar(movimentacao);

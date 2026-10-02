@@ -1,6 +1,7 @@
 package com.senac.estoque.config;
 
 import com.senac.estoque.model.Categoria;
+import com.senac.estoque.model.Usuario;
 import com.senac.estoque.model.Produto;
 import com.senac.estoque.repository.CategoriaRepository;
 import com.senac.estoque.repository.ProdutoRepository;
@@ -12,10 +13,14 @@ public class DataLoader implements CommandLineRunner {
 
     private final CategoriaRepository categoriaRepository;
     private final ProdutoRepository produtoRepository;
+    private final com.senac.estoque.repository.UsuarioRepository usuarioRepository;
+    private final org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder passwordEncoder;
 
-    public DataLoader(CategoriaRepository categoriaRepository, ProdutoRepository produtoRepository) {
+    public DataLoader(CategoriaRepository categoriaRepository, ProdutoRepository produtoRepository, com.senac.estoque.repository.UsuarioRepository usuarioRepository, org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder passwordEncoder) {
         this.categoriaRepository = categoriaRepository;
         this.produtoRepository = produtoRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -50,6 +55,37 @@ public class DataLoader implements CommandLineRunner {
             p3.setEstoqueMinimo(8);
             p3.setCategoriaId(c1.getId());
             produtoRepository.save(p3);
+        }
+
+        // Create initial admin user if env vars present and no users exist
+        if (usuarioRepository.count() == 0) {
+            String adminEmail = System.getenv("ADMIN_EMAIL");
+            String adminPassword = System.getenv("ADMIN_PASSWORD");
+            String adminName = System.getenv("ADMIN_NAME");
+
+            if (adminEmail != null && adminPassword != null) {
+                Usuario admin = new Usuario();
+                admin.setNome(adminName != null ? adminName : "Admin");
+                admin.setEmail(adminEmail);
+                admin.setSenha(passwordEncoder.encode(adminPassword));
+                admin.setPerfil("ADMIN");
+                usuarioRepository.save(admin);
+            }
+        }
+
+        // Ensure default admin account exists (first-login general): admin@localhost / admin123
+        try {
+            String defaultEmail = "admin@localhost";
+            if (usuarioRepository.findByEmail(defaultEmail).isEmpty()) {
+                Usuario admin = new Usuario();
+                admin.setNome("Administrador");
+                admin.setEmail(defaultEmail);
+                admin.setSenha(passwordEncoder.encode("admin123"));
+                admin.setPerfil("ADMIN");
+                usuarioRepository.save(admin);
+            }
+        } catch (Exception ex) {
+            // Do not fail startup if creating default admin fails; log if logger available
         }
     }
 }

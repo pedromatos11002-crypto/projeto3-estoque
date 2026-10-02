@@ -5,6 +5,7 @@ import com.senac.estoque.service.CategoriaService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/categorias")
@@ -23,11 +24,13 @@ public class CategoriaController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Categoria criar(@RequestBody Categoria categoria) {
         return categoriaService.salvar(categoria);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public void excluir(@PathVariable Long id) {
         categoriaService.excluir(id);
     }

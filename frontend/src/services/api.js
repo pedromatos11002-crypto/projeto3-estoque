@@ -12,12 +12,24 @@ async function parseBody(res) {
   }
 }
 
+function getAuthToken() {
+  try {
+    return localStorage.getItem('auth_token')
+  } catch {
+    return null
+  }
+}
+
 async function fetchWithTimeout(url, options = {}, timeout = DEFAULT_TIMEOUT) {
   const controller = new AbortController()
   const id = setTimeout(() => controller.abort(), timeout)
 
   try {
-    const res = await fetch(url, { ...options, signal: controller.signal })
+    const token = getAuthToken()
+    const headers = { ...(options.headers || {}) }
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
+    const res = await fetch(url, { ...options, headers, signal: controller.signal })
     clearTimeout(id)
     return res
   } catch (err) {

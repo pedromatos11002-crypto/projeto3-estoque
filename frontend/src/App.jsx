@@ -1,4 +1,4 @@
-﻿import { Routes, Route, NavLink, Link, useLocation } from 'react-router-dom'
+﻿import { Routes, Route, NavLink, Link, useLocation, Navigate } from 'react-router-dom'
 import { useState } from 'react'
 import './senac-theme.css'
 import Dashboard from './pages/DashboardModern.jsx'
@@ -7,6 +7,8 @@ import Produtos from './pages/Produtos.jsx'
 import FormProduto from './pages/FormProduto.jsx'
 import Categorias from './pages/Categorias.jsx'
 import Movimentacoes from './pages/Movimentacoes.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import * as auth from './services/auth'
 
 const links = [
   { to: '/', label: 'Dashboard', icon: '⌂', end: true },
@@ -20,6 +22,19 @@ function App() {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
+  const user = auth.getUser()
+  const isAuth = auth.isAuthenticated()
+  if (!isAuth) {
+    return (
+      <div className="login-shell">
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="*" element={<Navigate to="/login" />} />
+        </Routes>
+      </div>
+    )
+  }
+
   return (
     <div className="app-shell">
       <button className="mobile-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menu">☰</button>
@@ -30,14 +45,14 @@ function App() {
         <nav className="sidebar-nav">
           {links.map(({to,label,icon,end}) => <NavLink key={to} to={to} end={end} onClick={closeMenu} className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}><span className="nav-icon">{icon}</span>{label}</NavLink>)}
         </nav>
-        <div className="sidebar-profile"><div className="avatar">PH</div><div><strong>Pedro Henrique</strong><small>Administrador</small></div></div>
-        <button className="logout-button" type="button"><span>↪</span>Sair</button>
+        <div className="sidebar-profile"><div className="avatar">PH</div><div><strong>{user?.nome || 'Usuário'}</strong><small>{user?.perfil || ''}</small></div></div>
+        <button className="logout-button" type="button" onClick={() => { auth.logout(); window.location.href = '/login' }}><span>↪</span>Sair</button>
       </aside>
       {menuOpen && <button className="sidebar-scrim" onClick={closeMenu} aria-label="Fechar menu" />}
       <main className="main-area">
         <header className="topbar">
           <div className="global-search"><span>⌕</span><input aria-label="Buscar" placeholder="Buscar produtos, categorias..." /></div>
-          <div className="topbar-user"><button className="notification" aria-label="Notificacoes">♧<i /></button><div className="avatar avatar-small">PH</div><span>Pedro Henrique</span><span className="chevron">⌄</span></div>
+          <div className="topbar-user"><button className="notification" aria-label="Notificacoes">♧<i /></button><div className="avatar avatar-small">PH</div><span>{user?.nome || 'Usuário'}</span><span className="chevron">⌄</span></div>
         </header>
         <div className="page-content" key={location.pathname}>
           <Routes>
@@ -55,5 +70,6 @@ function App() {
   )
 }
 export default App
+
 
 

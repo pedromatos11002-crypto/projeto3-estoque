@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/api/produtos")
@@ -39,16 +40,19 @@ public class ProdutoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Produto criar(@RequestBody Produto produto) {
         return produtoService.salvar(produto);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public Produto atualizar(@PathVariable Long id, @RequestBody Produto produto) {
         return produtoService.atualizar(id, produto);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public void excluir(@PathVariable Long id) {
         produtoService.excluir(id);
     }
