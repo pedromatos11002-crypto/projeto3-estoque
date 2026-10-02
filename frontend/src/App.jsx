@@ -1,55 +1,59 @@
-import { Routes, Route, Link, useLocation } from 'react-router-dom'
+﻿import { Routes, Route, NavLink, Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import Dashboard from './pages/Dashboard.jsx'
+import './senac-theme.css'
+import Dashboard from './pages/DashboardModern.jsx'
 import Graficos from './pages/Graficos.jsx'
 import Produtos from './pages/Produtos.jsx'
 import FormProduto from './pages/FormProduto.jsx'
 import Categorias from './pages/Categorias.jsx'
 import Movimentacoes from './pages/Movimentacoes.jsx'
 
+const links = [
+  { to: '/', label: 'Dashboard', icon: '⌂', end: true },
+  { to: '/produtos', label: 'Produtos', icon: '▣' },
+  { to: '/categorias', label: 'Categorias', icon: '▤' },
+  { to: '/movimentacoes', label: 'Movimentacoes', icon: '↕' },
+  { to: '/graficos', label: 'Relatorios', icon: '▥' },
+]
+
 function App() {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
-
+  const closeMenu = () => setMenuOpen(false)
   return (
-    <div>
-      <nav className="app-nav">
-        <div className="nav-inner">
-          <Link to="/" className="brand" onClick={() => setMenuOpen(false)}>
-            <svg className="logo" width="40" height="40" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect x="6" y="30" width="20" height="18" rx="3" fill="#8FBFA3" />
-              <rect x="38" y="30" width="20" height="18" rx="3" fill="#78a88f" />
-              <rect x="22" y="10" width="20" height="18" rx="3" fill="#DCEDE2" />
-              <path d="M22 10 L32 2 L42 10" stroke="#8FBFA3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span>Estoque</span>
-          </Link>
-
-          <div className={`nav-items ${menuOpen ? 'show' : ''}`}>
-            <Link to="/" className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Dashboard</Link>
-            <Link to="/graficos" className={`nav-link ${location.pathname.startsWith('/graficos') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Gráficos</Link>
-            <Link to="/produtos" className={`nav-link ${location.pathname.startsWith('/produtos') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Produtos</Link>
-            <Link to="/categorias" className={`nav-link ${location.pathname.startsWith('/categorias') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Categorias</Link>
-            <Link to="/movimentacoes" className={`nav-link ${location.pathname.startsWith('/movimentacoes') ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>Movimentacoes</Link>
-          </div>
-
-          <button className="nav-toggle" onClick={() => setMenuOpen((s) => !s)} aria-label="Abrir menu">☰</button>
+    <div className="app-shell">
+      <button className="mobile-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menu">☰</button>
+      <aside className={`sidebar ${menuOpen ? 'sidebar-open' : ''}`}>
+        <Link to="/" className="brand" onClick={closeMenu}>
+          <span className="brand-mark">◇</span><span className="brand-copy">Estoque<small>SENAC</small></span>
+        </Link>
+        <nav className="sidebar-nav">
+          {links.map(({to,label,icon,end}) => <NavLink key={to} to={to} end={end} onClick={closeMenu} className={({isActive}) => `nav-link ${isActive ? 'active' : ''}`}><span className="nav-icon">{icon}</span>{label}</NavLink>)}
+        </nav>
+        <div className="sidebar-profile"><div className="avatar">PH</div><div><strong>Pedro Henrique</strong><small>Administrador</small></div></div>
+        <button className="logout-button" type="button"><span>↪</span>Sair</button>
+      </aside>
+      {menuOpen && <button className="sidebar-scrim" onClick={closeMenu} aria-label="Fechar menu" />}
+      <main className="main-area">
+        <header className="topbar">
+          <div className="global-search"><span>⌕</span><input aria-label="Buscar" placeholder="Buscar produtos, categorias..." /></div>
+          <div className="topbar-user"><button className="notification" aria-label="Notificacoes">♧<i /></button><div className="avatar avatar-small">PH</div><span>Pedro Henrique</span><span className="chevron">⌄</span></div>
+        </header>
+        <div className="page-content" key={location.pathname}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/graficos" element={<Graficos />} />
+            <Route path="/produtos" element={<Produtos />} />
+            <Route path="/produtos/novo" element={<FormProduto />} />
+            <Route path="/produtos/:id/editar" element={<FormProduto />} />
+            <Route path="/categorias" element={<Categorias />} />
+            <Route path="/movimentacoes" element={<Movimentacoes />} />
+          </Routes>
         </div>
-      </nav>
-
-      <div className="container">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/graficos" element={<Graficos />} />
-          <Route path="/produtos" element={<Produtos />} />
-          <Route path="/produtos/novo" element={<FormProduto />} />
-          <Route path="/produtos/:id/editar" element={<FormProduto />} />
-          <Route path="/categorias" element={<Categorias />} />
-          <Route path="/movimentacoes" element={<Movimentacoes />} />
-        </Routes>
-      </div>
+      </main>
     </div>
   )
 }
-
 export default App
+
+

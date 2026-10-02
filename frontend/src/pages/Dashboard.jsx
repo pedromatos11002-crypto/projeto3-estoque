@@ -5,64 +5,139 @@ export default function Dashboard() {
   const [produtos, setProdutos] = useState([])
 
   useEffect(() => {
-    get('/produtos').then(setProdutos)
+    get('/produtos')
+      .then(setProdutos)
+      .catch((error) => {
+        console.error('Erro ao carregar produtos:', error)
+      })
   }, [])
 
-  // Use os dados atuais dos produtos para calcular os indicadores
-  const valorTotal = produtos.reduce((sum, p) => sum + ((Number(p.precoUnitario) || 0) * (Number(p.quantidadeEstoque) || 0)), 0)
-  const estoqueBaixo = produtos.filter((p) => (Number(p.quantidadeEstoque) || 0) <= (Number(p.estoqueMinimo) || 0))
+  const valorTotal = produtos.reduce(
+    (sum, p) =>
+      sum +
+      (Number(p.precoUnitario) || 0) *
+        (Number(p.quantidadeEstoque) || 0),
+    0
+  )
+
+  const estoqueBaixo = produtos.filter(
+    (p) =>
+      (Number(p.quantidadeEstoque) || 0) <=
+      (Number(p.estoqueMinimo) || 0)
+  )
 
   return (
-    <div>
-      <h1>Painel de Estoque</h1>
-      <div className="grid">
-        <div className="card">
+    <div className="container dashboard">
+      <div className="dashboard-header">
+        <div>
+          <h1>Painel de Estoque</h1>
+          <p className="muted">
+            Acompanhe os principais indicadores do seu estoque.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid dashboard-cards">
+        <div className="card dashboard-card">
           <div className="card-head">
             <div>
               <div className="card-title">Produtos cadastrados</div>
               <div className="stat">{produtos.length}</div>
             </div>
-            <div className="card-icon" aria-hidden>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 3.87 3.13 7 7 7s7-3.13 7-7c0-3.87-3.13-7-7-7z" fill="currentColor" opacity="0.16"/><path d="M12 11a3 3 0 100-6 3 3 0 000 6z" fill="currentColor"/></svg>
+
+            <div className="card-icon" aria-hidden="true">
+              📦
             </div>
           </div>
         </div>
 
-        <div className="card">
+        <div className="card dashboard-card">
           <div className="card-head">
             <div>
               <div className="card-title">Valor total em estoque</div>
-              <div className="stat">R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              <div className="stat dashboard-value">
+                R${' '}
+                {valorTotal.toLocaleString('pt-BR', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </div>
             </div>
-            <div className="card-icon" aria-hidden>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14v8H5z" fill="currentColor" opacity="0.12"/><path d="M7 10h10v2H7z" fill="currentColor"/></svg>
+
+            <div className="card-icon" aria-hidden="true">
+              💰
             </div>
           </div>
         </div>
 
-        <div className="card">
+        <div className="card dashboard-card">
           <div className="card-head">
             <div>
-              <div className="card-title">Produtos com estoque baixo</div>
+              <div className="card-title">
+                Produtos com estoque baixo
+              </div>
               <div className="stat">{estoqueBaixo.length}</div>
             </div>
-            <div className="card-icon" aria-hidden>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3 6h6l-5 4 2 6-6-4-6 4 2-6L3 8h6z" fill="currentColor" opacity="0.12"/><path d="M12 7l1.5 3H10.5L12 7z" fill="currentColor"/></svg>
+
+            <div className="card-icon warning-icon" aria-hidden="true">
+              ⚠️
             </div>
           </div>
         </div>
       </div>
 
-      <h2>Alerta de estoque baixo</h2>
-      <div className="table-wrap">
-        <table>
-          <thead><tr><th>Produto</th><th>Estoque</th><th>Minimo</th></tr></thead>
-          <tbody>
-            {estoqueBaixo.map((p) => (
-              <tr key={p.id}><td>{p.nome}</td><td>{p.quantidadeEstoque}</td><td>{p.estoqueMinimo}</td></tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="dashboard-section">
+        <div className="section-header">
+          <div>
+            <h2>Alertas de estoque baixo</h2>
+            <p className="muted">
+              Produtos que precisam de reposição.
+            </p>
+          </div>
+        </div>
+
+        {estoqueBaixo.length === 0 ? (
+          <div className="card empty-state">
+            <div className="empty-icon">✓</div>
+            <h3>Estoque em dia</h3>
+            <p className="muted">
+              Nenhum produto está abaixo do estoque mínimo.
+            </p>
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Estoque atual</th>
+                  <th>Estoque mínimo</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {estoqueBaixo.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <strong>{p.nome}</strong>
+                    </td>
+
+                    <td>{p.quantidadeEstoque}</td>
+
+                    <td>{p.estoqueMinimo}</td>
+
+                    <td>
+                      <span className="stock-badge">
+                        Estoque baixo
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )
