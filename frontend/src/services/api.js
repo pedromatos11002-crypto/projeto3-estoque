@@ -1,4 +1,4 @@
-const BASE_URL = 'https://projeto3-estoque-backend.onrender.com/api'
+export const BASE_URL = 'https://projeto3-estoque-backend.onrender.com/api'
 
 const DEFAULT_TIMEOUT = 90000 // 90s
 

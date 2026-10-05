@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { get } from '../services/api'
+import { jsPDF } from 'jspdf'
+import { BASE_URL, get } from '../services/api'
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(value || 0))
@@ -14,7 +15,22 @@ const formatPeriodLabel = (dateValue) => {
 export default function Graficos() {
   const [produtos, setProdutos] = useState([])
   const [movimentacoes, setMovimentacoes] = useState([])
+  const [relatoriosSalvos, setRelatoriosSalvos] = useState([])
   const [carregando, setCarregando] = useState(true)
+  const [salvandoRelatorio, setSalvandoRelatorio] = useState(false)
+  const [mensagemRelatorio, setMensagemRelatorio] = useState('')
+  const [erroRelatorio, setErroRelatorio] = useState('')
+  const [gerandoPdf, setGerandoPdf] = useState(false)
+
+  const carregarRelatoriosSalvos = async () => {
+    try {
+      const dados = await get('/relatorios')
+      setRelatoriosSalvos(Array.isArray(dados) ? dados : [])
+    } catch (err) {
+      console.error('Erro carregando relatórios salvos:', err)
+      setRelatoriosSalvos([])
+    }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -30,7 +46,11 @@ export default function Graficos() {
         setProdutos([])
         setMovimentacoes([])
       })
-      .finally(() => setCarregando(false))
+      .finally(() => {
+        setCarregando(false)
+      })
+
+    carregarRelatoriosSalvos()
   }, [])
 
   const entradasTotais = useMemo(
@@ -89,11 +109,159 @@ export default function Graficos() {
     )
   }, [produtos])
 
+  const baixarBlob = (blob, nomeArquivo) => {
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = nomeArquivo
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const salvarRelatorioNoBackend = async (blob, nomeArquivo) => {
+    const formData = new FormData()
+    formData.append('arquivo', blob, nomeArquivo)
+    formData.append('nome', nomeArquivo)
+
+    const token = localStorage.getItem('auth_token')
+    const resposta = await fetch(`${BASE_URL}/relatorios`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    })
+
+    const texto = await resposta.text()
+    if (!resposta.ok) {
+      throw new Error(texto || 'Erro ao salvar relatório.')
+    }
+
+    try {
+      return texto ? JSON.parse(texto) : null
+    } catch {
+      return null
+    }
+  }
+
+  const baixarRelatorioSalvo = async (id, nome) => {
+    const token = localStorage.getItem('auth_token')
+    const resposta = await fetch(`${BASE_URL}/relatorios/${id}/download`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+
+    if (!resposta.ok) {
+      throw new Error('Não foi possível baixar o relatório salvo.')
+    }
+
+    const blob = await resposta.blob()
+    const nomeArquivo = nome.toLowerCase().endsWith('.pdf') ? nome : `${nome}.pdf`
+    baixarBlob(blob, nomeArquivo)
+  }
+
+  const excluirRelatorioSalvo = async (id) => {
+    const token = localStorage.getItem('auth_token')
+    const resposta = await fetch(`${BASE_URL}/relatorios/${id}`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+
+    if (!resposta.ok) {
+      throw new Error('Não foi possível excluir o relatório salvo.')
+    }
+
+    await carregarRelatoriosSalvos()
+  }
+
+  const gerarPdf = async () => {
+    setGerandoPdf(true)
+    setSalvandoRelatorio(true)
+    setMensagemRelatorio('')
+    setErroRelatorio('')
+
+    try {
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' })
+      const dataGeracao = new Date().toLocaleDateString('pt-BR')
+      const dia = String(new Date().getDate()).padStart(2, '0')
+      const nomeArquivo = `relatorio-${dia}.pdf`
+
+      const linhas = [
+        'SISTEMA INTEGRADO DE GESTÃO DA QUALIDADE',
+        'Relatório: Gráficos',
+        `Data de geração: ${dataGeracao}`,
+        '',
+        `Entradas: ${entradasTotais}`,
+        `Saídas: ${saidasTotais}`,
+        `Valor total do estoque: ${formatCurrency(totalEstoque)}`,
+        '',
+        'Períodos:',
+      ]
+
+      periodos.forEach((periodo) => {
+        linhas.push(`- ${periodo.label}: entradas ${periodo.entrada}, saídas ${periodo.saida}`)
+      })
+
+      if (periodos.length === 0) {
+        linhas.push('- Sem dados de movimentação para exibir por período.')
+      }
+
+      linhas.push('', 'Resultado financeiro:')
+      linhas.push(hasFinanceData ? 'Disponível / calculado' : 'Não calculável com os dados atuais')
+
+      if (!hasFinanceData) {
+        linhas.push('O cálculo de lucro/prejuízo real não pode ser realizado com os dados atuais do sistema.')
+      }
+
+      let cursorY = 60
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(16)
+      doc.text(linhas[0], 40, cursorY)
+
+      cursorY += 28
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(11)
+
+      linhas.slice(1).forEach((linha) => {
+        if (cursorY > 760) {
+          doc.addPage()
+          cursorY = 60
+        }
+
+        doc.text(linha, 40, cursorY)
+        cursorY += 18
+      })
+
+      const pdfBlob = doc.output('blob')
+      baixarBlob(pdfBlob, nomeArquivo)
+      await salvarRelatorioNoBackend(pdfBlob, nomeArquivo)
+      await carregarRelatoriosSalvos()
+      setMensagemRelatorio('PDF gerado e salvo com sucesso.')
+    } catch (error) {
+      console.error('Erro ao gerar PDF do relatório:', error)
+      setErroRelatorio('Não foi possível gerar ou salvar o PDF do relatório.')
+    } finally {
+      setGerandoPdf(false)
+      setSalvandoRelatorio(false)
+    }
+  }
+
   return (
     <div className="graficos-page">
       <style>{`
         .graficos-page h1 { margin: 0 0 20px; }
+        .graficos-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+        .graficos-header h1 { margin: 0; }
         .graficos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 24px; }
+        .saved-reports { display: grid; gap: 12px; }
+        .saved-report { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border: 1px solid #edf3ef; border-radius: 12px; background: #f8faf9; }
+        .saved-report-meta { display: flex; flex-direction: column; gap: 4px; }
+        .saved-report-name { font-weight: 700; }
+        .saved-report-date { color: var(--muted); font-size: 12px; }
+        .saved-report-actions { display: flex; gap: 8px; }
+        .saved-report-actions .btn { min-width: 110px; }
+        .relatorio-status { margin-top: 12px; font-size: 13px; }
+        .relatorio-status.success { color: #1f7a4d; }
+        .relatorio-status.error { color: #b23a3a; }
         .graficos-card { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); padding: 22px; }
         .graficos-card .label { font-size: 13px; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
         .graficos-card .valor { font-size: 28px; font-weight: 800; color: var(--text); }
@@ -118,7 +286,26 @@ export default function Graficos() {
         }
       `}</style>
 
-      <h1>Gráficos</h1>
+      <div className="graficos-header">
+        <h1>Gráficos</h1>
+        {!carregando && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={gerandoPdf || salvandoRelatorio}
+            onClick={gerarPdf}
+          >
+            {gerandoPdf || salvandoRelatorio ? 'Gerando PDF...' : 'Gerar PDF'}
+          </button>
+        )}
+      </div>
+
+      {mensagemRelatorio && (
+        <div className="relatorio-status success">{mensagemRelatorio}</div>
+      )}
+      {erroRelatorio && (
+        <div className="relatorio-status error">{erroRelatorio}</div>
+      )}
 
       {carregando ? (
         <div className="graficos-panel">Carregando dados...</div>
@@ -186,6 +373,42 @@ export default function Graficos() {
             {!hasFinanceData && (
               <div className="result-info">
                 O cálculo de lucro/prejuízo real não pode ser realizado com os dados atuais do sistema, porque não existem informações de custo de compra, preço de venda ou dados financeiros suficientes para comparar entradas e saídas por valor.
+              </div>
+            )}
+          </div>
+
+          <div className="graficos-panel">
+            <h2>Relatórios salvos</h2>
+            {relatoriosSalvos.length === 0 ? (
+              <div className="sub">Nenhum relatório salvo no sistema.</div>
+            ) : (
+              <div className="saved-reports">
+                {relatoriosSalvos.map((relatorio) => (
+                  <div className="saved-report" key={relatorio.id}>
+                    <div className="saved-report-meta">
+                      <div className="saved-report-name">{relatorio.nome}</div>
+                      <div className="saved-report-date">Gerado em {relatorio.dataGeracao}</div>
+                    </div>
+
+                    <div className="saved-report-actions">
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => baixarRelatorioSalvo(relatorio.id, relatorio.nome)}
+                      >
+                        Baixar PDF
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={() => excluirRelatorioSalvo(relatorio.id)}
+                      >
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
