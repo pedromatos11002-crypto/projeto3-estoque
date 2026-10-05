@@ -1,6 +1,6 @@
 const BASE_URL = 'https://projeto3-estoque-backend.onrender.com/api'
 
-const DEFAULT_TIMEOUT = 15000 // 15s
+const DEFAULT_TIMEOUT = 90000 // 90s
 
 async function parseBody(res) {
   const text = await res.text()
