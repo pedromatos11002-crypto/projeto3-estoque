@@ -120,12 +120,12 @@ function App() {
           onClick={closeMenu}
         >
           <span className="brand-mark">
-            ◇
+            <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round"><path d="M8 21 31.5 8 56 20.5v27L32 59 8 46V21Z"/><path d="m8.5 20.5 23.5 13 24-13M32 34v24M20 14.5l24 13v14"/></svg>
           </span>
 
           <span className="brand-copy">
             Estoque
-            <small>SENAC</small>
+            <small>Master</small>
           </span>
         </Link>
 

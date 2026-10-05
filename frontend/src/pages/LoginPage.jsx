@@ -37,7 +37,7 @@ export default function LoginPage() {
   return <main className="login-page">
     <section className="login-card" aria-labelledby="login-title">
       <div className="login-brand-icon"><BoxIcon /></div>
-      <h1 id="login-title">SISTEMA DE <span>ESTOQUE</span></h1>
+      <h1 id="login-title">ESTOQUE <span>MASTER</span></h1>
       <p className="login-subtitle">Acesse sua conta para continuar</p>
       <form onSubmit={submit}>
         <div className="login-field">

@@ -33,10 +33,11 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         return usuarioService.porEmail(req.email).map(user -> {
             if (passwordEncoder.matches(req.senha, user.getSenha())) {
-                String token = jwtUtil.generateToken(user.getEmail(), user.getPerfil(), user.getId(), user.getNome());
+                String perfilNormalizado = JwtUtil.normalizeRole(user.getPerfil());
+                String token = jwtUtil.generateToken(user.getEmail(), perfilNormalizado, user.getId(), user.getNome());
                 return ResponseEntity.ok(Map.of(
                         "token", token,
-                        "user", Map.of("id", user.getId(), "nome", user.getNome(), "email", user.getEmail(), "perfil", user.getPerfil())
+                        "user", Map.of("id", user.getId(), "nome", user.getNome(), "email", user.getEmail(), "perfil", perfilNormalizado)
                 ));
             } else {
                 return ResponseEntity.status(401).body(Map.of("message", "Email ou senha inválidos."));
