@@ -8,7 +8,7 @@
   Navigate
 } from 'react-router-dom'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import './senac-theme.css'
 
@@ -37,17 +37,46 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [search, setSearch] = useState('')
 
+  // Carrega o tema salvo
+  const [darkMode, setDarkMode] = useState(() => {
+    return localStorage.getItem('tema') === 'dark'
+  })
+
   const closeMenu = () => setMenuOpen(false)
 
   const user = auth.getUser()
   const isAuth = auth.isAuthenticated()
 
+  // Aplica o tema no site
+  useEffect(() => {
+    document.body.setAttribute(
+      'data-theme',
+      darkMode ? 'dark' : 'light'
+    )
+
+    localStorage.setItem(
+      'tema',
+      darkMode ? 'dark' : 'light'
+    )
+  }, [darkMode])
+
+  function alternarTema() {
+    setDarkMode((valorAtual) => !valorAtual)
+  }
+
   if (!isAuth) {
     return (
       <div className="login-shell">
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="*" element={<Navigate to="/login" />} />
+          <Route
+            path="/login"
+            element={<LoginPage />}
+          />
+
+          <Route
+            path="*"
+            element={<Navigate to="/login" />}
+          />
         </Routes>
       </div>
     )
@@ -59,7 +88,9 @@ function App() {
     setSearch(valor)
 
     if (valor.trim()) {
-      navigate(`/produtos?busca=${encodeURIComponent(valor)}`)
+      navigate(
+        `/produtos?busca=${encodeURIComponent(valor)}`
+      )
     } else {
       navigate('/produtos')
     }
@@ -68,6 +99,7 @@ function App() {
   return (
     <div className="app-shell">
 
+      {/* Botão do menu mobile */}
       <button
         className="mobile-menu-toggle"
         onClick={() => setMenuOpen(!menuOpen)}
@@ -76,15 +108,20 @@ function App() {
         ☰
       </button>
 
+      {/* MENU LATERAL */}
       <aside
-        className={`sidebar ${menuOpen ? 'sidebar-open' : ''}`}
+        className={`sidebar ${
+          menuOpen ? 'sidebar-open' : ''
+        }`}
       >
         <Link
           to="/"
           className="brand"
           onClick={closeMenu}
         >
-          <span className="brand-mark">◇</span>
+          <span className="brand-mark">
+            ◇
+          </span>
 
           <span className="brand-copy">
             Estoque
@@ -93,28 +130,42 @@ function App() {
         </Link>
 
         <nav className="sidebar-nav">
-          {links.map(({ to, label, icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              onClick={closeMenu}
-              className={({ isActive }) =>
-                `nav-link ${isActive ? 'active' : ''}`
-              }
-            >
-              <span className="nav-icon">{icon}</span>
-              {label}
-            </NavLink>
-          ))}
+          {links.map(
+            ({ to, label, icon, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={closeMenu}
+                className={({ isActive }) =>
+                  `nav-link ${
+                    isActive ? 'active' : ''
+                  }`
+                }
+              >
+                <span className="nav-icon">
+                  {icon}
+                </span>
+
+                {label}
+              </NavLink>
+            )
+          )}
         </nav>
 
         <div className="sidebar-profile">
-          <div className="avatar">PH</div>
+          <div className="avatar">
+            PH
+          </div>
 
           <div>
-            <strong>{user?.nome || 'Usuário'}</strong>
-            <small>{user?.perfil || ''}</small>
+            <strong>
+              {user?.nome || 'Usuário'}
+            </strong>
+
+            <small>
+              {user?.perfil || ''}
+            </small>
           </div>
         </div>
 
@@ -139,8 +190,10 @@ function App() {
         />
       )}
 
+      {/* ÁREA PRINCIPAL */}
       <main className="main-area">
 
+        {/* BARRA SUPERIOR */}
         <header className="topbar">
 
           <div className="global-search">
@@ -156,6 +209,26 @@ function App() {
 
           <div className="topbar-user">
 
+            {/* BOTÃO DE TEMA */}
+            <button
+              className="theme-toggle"
+              type="button"
+              onClick={alternarTema}
+              aria-label={
+                darkMode
+                  ? 'Ativar modo claro'
+                  : 'Ativar modo escuro'
+              }
+              title={
+                darkMode
+                  ? 'Modo claro'
+                  : 'Modo escuro'
+              }
+            >
+              {darkMode ? '☀️' : '🌙'}
+            </button>
+
+            {/* NOTIFICAÇÕES */}
             <button
               className="notification"
               aria-label="Notificacoes"
@@ -176,9 +249,9 @@ function App() {
             </span>
 
           </div>
-
         </header>
 
+        {/* CONTEÚDO */}
         <div className="page-content">
 
           <Routes>

@@ -14,3 +14,271 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-s
 @media(max-width:950px){.dashboard-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}.dashboard-lower{grid-template-columns:1fr!important}}
 @media(max-width:640px){.dashboard-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}.dashboard-card.modern-stat{height:90px!important;min-height:90px!important;padding:10px!important}.modern-stat .stat{font-size:18px!important}.modern-stat .dashboard-value{font-size:14px!important}.dashboard-lower{grid-template-columns:1fr!important}}
 .chart-empty{height:180px;display:grid;place-items:center;color:#84949a;font-size:12px;background:repeating-linear-gradient(to bottom,transparent 0 43px,#edf2ef 44px 45px)}
+/* =========================================
+   MODO ESCURO
+   ========================================= */
+
+body[data-theme="dark"] {
+  --bg: #101817;
+  --card: #182220;
+  --primary: #16b879;
+  --primary-600: #0d9562;
+  --primary-100: #173d32;
+  --text: #edf7f3;
+  --muted: #9aaca7;
+  --danger: #ef6868;
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Fundo principal */
+body[data-theme="dark"] .main-area {
+  background: var(--bg);
+}
+
+body[data-theme="dark"] .page-content {
+  color: var(--text);
+}
+
+/* Barra superior */
+body[data-theme="dark"] .topbar {
+  background: #151f1d;
+  border-bottom-color: #26332f;
+  color: var(--text);
+}
+
+/* Campo de pesquisa */
+body[data-theme="dark"] .global-search {
+  background: #1c2926;
+  border-color: #30403b;
+  color: #a9bbb5;
+}
+
+body[data-theme="dark"] .global-search input {
+  background: transparent;
+  color: #edf7f3;
+}
+
+body[data-theme="dark"] .global-search input::placeholder {
+  color: #82958f;
+}
+
+/* Usuário e notificações */
+body[data-theme="dark"] .topbar-user {
+  color: #edf7f3;
+}
+
+body[data-theme="dark"] .notification {
+  background: transparent;
+  color: #dcebe6;
+}
+
+/* Botão de tema */
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 9px;
+  background: #f1f5f3;
+  color: #304a43;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  transition: 0.2s;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  background: #e5eeeb;
+}
+
+body[data-theme="dark"] .theme-toggle {
+  background: #263732;
+  color: #f5faf8;
+}
+
+body[data-theme="dark"] .theme-toggle:hover {
+  background: #31463f;
+}
+
+/* Cards */
+body[data-theme="dark"] .card,
+body[data-theme="dark"] .chart-card,
+body[data-theme="dark"] .low-stock-card,
+body[data-theme="dark"] .graficos-card,
+body[data-theme="dark"] .graficos-panel {
+  background: var(--card);
+  border-color: #293833;
+  color: var(--text);
+}
+
+body[data-theme="dark"] .card:hover {
+  box-shadow: 0 9px 25px rgba(0, 0, 0, 0.35);
+}
+
+body[data-theme="dark"] .card .card-title,
+body[data-theme="dark"] .modern-stat .card-title {
+  color: #9aaca7 !important;
+}
+
+body[data-theme="dark"] .stat,
+body[data-theme="dark"] .dashboard-value {
+  color: #f1f8f5;
+}
+
+/* Banner do dashboard */
+body[data-theme="dark"] .welcome-banner {
+  background: linear-gradient(
+    110deg,
+    #172320 28%,
+    #19352d 68%,
+    #245144
+  );
+}
+
+body[data-theme="dark"] .welcome-copy h1 {
+  color: #f1f8f5;
+}
+
+body[data-theme="dark"] .welcome-copy p {
+  color: #a4b6b0;
+}
+
+body[data-theme="dark"] .healthy-pill {
+  background: #1c4a3a;
+  color: #6de0b1;
+}
+
+/* Tabelas */
+body[data-theme="dark"] .table-wrap {
+  background: var(--card);
+}
+
+body[data-theme="dark"] thead th,
+body[data-theme="dark"] .page-content thead th {
+  background: #1d2a27;
+  color: #a8bab5;
+}
+
+body[data-theme="dark"] tbody td {
+  color: #dce9e5;
+  border-top-color: #293833;
+}
+
+body[data-theme="dark"] .page-content tbody tr {
+  border-bottom-color: #293833;
+}
+
+body[data-theme="dark"] tbody tr:hover {
+  background: #1e2d29;
+}
+
+body[data-theme="dark"] .low-stock {
+  background: #352522;
+}
+
+/* Formulários */
+body[data-theme="dark"] input,
+body[data-theme="dark"] select,
+body[data-theme="dark"] textarea {
+  background: #1b2825;
+  border-color: #34453f;
+  color: #edf7f3;
+}
+
+body[data-theme="dark"] input::placeholder,
+body[data-theme="dark"] textarea::placeholder {
+  color: #7f928c;
+}
+
+body[data-theme="dark"] label {
+  color: #a8bab5;
+}
+
+body[data-theme="dark"] input:focus,
+body[data-theme="dark"] select:focus,
+body[data-theme="dark"] textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(22, 184, 121, 0.15);
+}
+
+/* Botões secundários */
+body[data-theme="dark"] .btn-secondary {
+  background: #263732;
+  color: #cfe0da;
+}
+
+body[data-theme="dark"] .btn-secondary:hover {
+  background: #30443e;
+}
+
+/* Listas e elementos auxiliares */
+body[data-theme="dark"] .compact-row {
+  border-bottom-color: #293833;
+}
+
+body[data-theme="dark"] .compact-row > span:nth-last-child(-n+2) {
+  color: #a5b8b2;
+}
+
+body[data-theme="dark"] .product-thumb {
+  background: #263631;
+}
+
+body[data-theme="dark"] .qty-pill {
+  background: #213d33;
+  color: #bdebd8;
+}
+
+body[data-theme="dark"] .movement-date,
+body[data-theme="dark"] .movement-obs .obs-text,
+body[data-theme="dark"] .muted {
+  color: var(--muted);
+}
+
+/* Gráficos */
+body[data-theme="dark"] .chart-empty {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 43px,
+    #293833 44px 45px
+  );
+  color: #849b94;
+}
+
+/* Links */
+body[data-theme="dark"] .section-title a {
+  color: #48d39c;
+}
+
+/* Estado vazio */
+body[data-theme="dark"] .empty-state h3,
+body[data-theme="dark"] .empty-state {
+  color: var(--text);
+}
+
+body[data-theme="dark"] .empty-state p {
+  color: var(--muted);
+}
+
+/* Ícones dos cards */
+body[data-theme="dark"] .card .card-icon {
+  background: #1b4638;
+  color: #45d29b;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  body[data-theme="dark"] .topbar {
+    background: linear-gradient(110deg, #075b47, #063d35);
+    color: #fff;
+    border: 0;
+  }
+
+  body[data-theme="dark"] .mobile-menu-toggle {
+    color: #fff;
+  }
+}
